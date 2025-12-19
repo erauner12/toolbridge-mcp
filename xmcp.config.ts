@@ -40,10 +40,20 @@ const config: XmcpConfig = {
     port: Number(process.env.TOOLBRIDGE_PORT ?? 8080),
   },
 
-  // Bundler configuration - externalize Node.js-specific packages
+  // Bundler configuration
   bundler: (config: any) => {
+    // Externalize Node.js-specific packages
     config.externals = config.externals || [];
     config.externals.push("@mcp-ui/server", "fs", "path", "crypto", "node:fs", "node:path", "node:crypto");
+
+    // Configure resolve extensions to handle .js -> .ts mapping
+    config.resolve = config.resolve || {};
+    config.resolve.extensions = [".ts", ".tsx", ".js", ".jsx", ".json"];
+    config.resolve.extensionAlias = {
+      ".js": [".ts", ".js"],
+      ".mjs": [".mts", ".mjs"],
+    };
+
     return config;
   },
 };
