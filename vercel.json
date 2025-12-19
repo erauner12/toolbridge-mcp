@@ -1,4 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "xmcp build --vercel"
+  "buildCommand": "xmcp build --vercel && node scripts/fix-vercel-cjs.mjs"
 }

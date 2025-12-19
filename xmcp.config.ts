@@ -42,10 +42,6 @@ const config: XmcpConfig = {
 
   // Bundler configuration
   bundler: (config: any) => {
-    // Externalize Node.js built-in modules only (not @mcp-ui/server which should be bundled)
-    config.externals = config.externals || [];
-    config.externals.push("fs", "path", "crypto", "node:fs", "node:path", "node:crypto");
-
     // Configure resolve extensions to handle .js -> .ts mapping
     config.resolve = config.resolve || {};
     config.resolve.extensions = [".ts", ".tsx", ".js", ".jsx", ".json"];
@@ -54,15 +50,16 @@ const config: XmcpConfig = {
       ".mjs": [".mts", ".mjs"],
     };
 
-    // Output ESM format to match package.json "type": "module"
+    // Force CommonJS output to avoid ESM/CJS mismatch issues
+    // rspack's default bundling uses require() for externals
     config.output = config.output || {};
-    config.output.module = true;
-    config.output.chunkFormat = "module";
-    config.output.library = { type: "module" };
+    config.output.module = false;
+    config.output.chunkFormat = "commonjs";
+    config.output.library = { type: "commonjs2" };
 
-    // Enable experiments for ESM output
+    // Disable ESM experiments
     config.experiments = config.experiments || {};
-    config.experiments.outputModule = true;
+    config.experiments.outputModule = false;
 
     return config;
   },
