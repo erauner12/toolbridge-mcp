@@ -24,6 +24,23 @@ import type {
 } from "./types.js";
 
 // ============================================================================
+// Auth Types
+// ============================================================================
+
+/**
+ * Authentication bundle for Go backend API calls.
+ *
+ * This is passed to API functions to provide both the access token
+ * and tenant header required by the Go backend.
+ */
+export interface BackendAuth {
+  /** Bearer token for Authorization header */
+  accessToken: string;
+  /** Tenant ID for X-TB-Tenant-ID header */
+  tenantId: string;
+}
+
+// ============================================================================
 // Token Management
 // ============================================================================
 
@@ -47,14 +64,14 @@ export function extractBearerToken(authHeader: string | undefined): string | nul
 interface RequestOptions {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   path: string;
-  accessToken: string;
+  auth: BackendAuth;
   params?: Record<string, string | number | boolean>;
   body?: unknown;
   ifMatch?: number;
 }
 
 async function makeRequest<T>(options: RequestOptions): Promise<T> {
-  const { method, path, accessToken, params, body, ifMatch } = options;
+  const { method, path, auth, params, body, ifMatch } = options;
 
   // Build URL with query params
   const url = new URL(path, env.goApiBaseUrl);
@@ -66,10 +83,11 @@ async function makeRequest<T>(options: RequestOptions): Promise<T> {
     }
   }
 
-  // Build headers
+  // Build headers with tenant ID
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${accessToken}`,
+    Authorization: `Bearer ${auth.accessToken}`,
+    "X-TB-Tenant-ID": auth.tenantId,
   };
 
   if (ifMatch !== undefined) {
@@ -103,7 +121,7 @@ async function makeRequest<T>(options: RequestOptions): Promise<T> {
 
 export async function listNotes(
   params: ListParams,
-  accessToken: string
+  auth: BackendAuth
 ): Promise<NotesListResponse> {
   const queryParams: Record<string, string | number | boolean> = {
     limit: params.limit ?? 100,
@@ -119,14 +137,14 @@ export async function listNotes(
   return makeRequest<NotesListResponse>({
     method: "GET",
     path: "/v1/notes",
-    accessToken,
+    auth,
     params: queryParams,
   });
 }
 
 export async function getNote(
   params: GetParams,
-  accessToken: string
+  auth: BackendAuth
 ): Promise<Note> {
   const queryParams: Record<string, string | boolean> = {};
   if (params.includeDeleted) {
@@ -136,14 +154,14 @@ export async function getNote(
   return makeRequest<Note>({
     method: "GET",
     path: `/v1/notes/${params.uid}`,
-    accessToken,
+    auth,
     params: queryParams,
   });
 }
 
 export async function createNote(
   params: CreateNoteParams,
-  accessToken: string
+  auth: BackendAuth
 ): Promise<Note> {
   const payload: Record<string, unknown> = {
     title: params.title,
@@ -160,14 +178,14 @@ export async function createNote(
   return makeRequest<Note>({
     method: "POST",
     path: "/v1/notes",
-    accessToken,
+    auth,
     body: payload,
   });
 }
 
 export async function updateNote(
   params: UpdateNoteParams,
-  accessToken: string
+  auth: BackendAuth
 ): Promise<Note> {
   const payload: Record<string, unknown> = {
     uid: params.uid,
@@ -182,7 +200,7 @@ export async function updateNote(
   return makeRequest<Note>({
     method: "PUT",
     path: `/v1/notes/${params.uid}`,
-    accessToken,
+    auth,
     body: payload,
     ifMatch: params.ifMatch,
   });
@@ -190,36 +208,36 @@ export async function updateNote(
 
 export async function patchNote(
   params: PatchNoteParams,
-  accessToken: string
+  auth: BackendAuth
 ): Promise<Note> {
   return makeRequest<Note>({
     method: "PATCH",
     path: `/v1/notes/${params.uid}`,
-    accessToken,
+    auth,
     body: params.updates,
   });
 }
 
-export async function deleteNote(uid: string, accessToken: string): Promise<Note> {
+export async function deleteNote(uid: string, auth: BackendAuth): Promise<Note> {
   return makeRequest<Note>({
     method: "DELETE",
     path: `/v1/notes/${uid}`,
-    accessToken,
+    auth,
   });
 }
 
-export async function archiveNote(uid: string, accessToken: string): Promise<Note> {
+export async function archiveNote(uid: string, auth: BackendAuth): Promise<Note> {
   return makeRequest<Note>({
     method: "POST",
     path: `/v1/notes/${uid}/archive`,
-    accessToken,
+    auth,
     body: {},
   });
 }
 
 export async function processNote(
   params: ProcessNoteParams,
-  accessToken: string
+  auth: BackendAuth
 ): Promise<Note> {
   const payload: Record<string, unknown> = {
     action: params.action,
@@ -232,7 +250,7 @@ export async function processNote(
   return makeRequest<Note>({
     method: "POST",
     path: `/v1/notes/${params.uid}/process`,
-    accessToken,
+    auth,
     body: payload,
   });
 }
@@ -243,7 +261,7 @@ export async function processNote(
 
 export async function listTasks(
   params: ListParams,
-  accessToken: string
+  auth: BackendAuth
 ): Promise<TasksListResponse> {
   const queryParams: Record<string, string | number | boolean> = {
     limit: params.limit ?? 100,
@@ -259,14 +277,14 @@ export async function listTasks(
   return makeRequest<TasksListResponse>({
     method: "GET",
     path: "/v1/tasks",
-    accessToken,
+    auth,
     params: queryParams,
   });
 }
 
 export async function getTask(
   params: GetParams,
-  accessToken: string
+  auth: BackendAuth
 ): Promise<Task> {
   const queryParams: Record<string, string | boolean> = {};
   if (params.includeDeleted) {
@@ -276,14 +294,14 @@ export async function getTask(
   return makeRequest<Task>({
     method: "GET",
     path: `/v1/tasks/${params.uid}`,
-    accessToken,
+    auth,
     params: queryParams,
   });
 }
 
 export async function createTask(
   params: CreateTaskParams,
-  accessToken: string
+  auth: BackendAuth
 ): Promise<Task> {
   const payload: Record<string, unknown> = {
     title: params.title,
@@ -301,14 +319,14 @@ export async function createTask(
   return makeRequest<Task>({
     method: "POST",
     path: "/v1/tasks",
-    accessToken,
+    auth,
     body: payload,
   });
 }
 
 export async function updateTask(
   params: UpdateTaskParams,
-  accessToken: string
+  auth: BackendAuth
 ): Promise<Task> {
   const payload: Record<string, unknown> = {
     uid: params.uid,
@@ -324,7 +342,7 @@ export async function updateTask(
   return makeRequest<Task>({
     method: "PUT",
     path: `/v1/tasks/${params.uid}`,
-    accessToken,
+    auth,
     body: payload,
     ifMatch: params.ifMatch,
   });
@@ -332,36 +350,36 @@ export async function updateTask(
 
 export async function patchTask(
   params: PatchTaskParams,
-  accessToken: string
+  auth: BackendAuth
 ): Promise<Task> {
   return makeRequest<Task>({
     method: "PATCH",
     path: `/v1/tasks/${params.uid}`,
-    accessToken,
+    auth,
     body: params.updates,
   });
 }
 
-export async function deleteTask(uid: string, accessToken: string): Promise<Task> {
+export async function deleteTask(uid: string, auth: BackendAuth): Promise<Task> {
   return makeRequest<Task>({
     method: "DELETE",
     path: `/v1/tasks/${uid}`,
-    accessToken,
+    auth,
   });
 }
 
-export async function archiveTask(uid: string, accessToken: string): Promise<Task> {
+export async function archiveTask(uid: string, auth: BackendAuth): Promise<Task> {
   return makeRequest<Task>({
     method: "POST",
     path: `/v1/tasks/${uid}/archive`,
-    accessToken,
+    auth,
     body: {},
   });
 }
 
 export async function processTask(
   params: ProcessTaskParams,
-  accessToken: string
+  auth: BackendAuth
 ): Promise<Task> {
   const payload: Record<string, unknown> = {
     action: params.action,
@@ -374,7 +392,7 @@ export async function processTask(
   return makeRequest<Task>({
     method: "POST",
     path: `/v1/tasks/${params.uid}/process`,
-    accessToken,
+    auth,
     body: payload,
   });
 }

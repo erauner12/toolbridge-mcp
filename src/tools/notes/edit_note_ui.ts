@@ -7,6 +7,7 @@
 
 import { z } from "zod";
 import * as api from "../../lib/api/toolbridgeClient.js";
+import { getBackendAuth, getCurrentUserId } from "../../lib/auth/index.js";
 import { buildUiWithStructuredContent, type UIFormat } from "../../lib/ui/mcpUi.js";
 import { renderNoteEditDiffHtml } from "../../lib/ui/html/noteEdits.js";
 import {
@@ -24,7 +25,7 @@ import { APPS_NOTE_EDIT_URI } from "../../config/env.js";
 // Schema
 // ============================================================================
 
-export const schema = z.object({
+export const schema = {
   uid: z.string().describe("The unique identifier of the note to edit"),
   proposed_content: z
     .string()
@@ -37,9 +38,9 @@ export const schema = z.object({
     .enum(["html", "remote-dom", "both"])
     .default("html")
     .describe("UI format to return"),
-});
+};
 
-export type EditNoteUiInput = z.infer<typeof schema>;
+export type EditNoteUiInput = z.infer<z.ZodObject<typeof schema>>;
 
 // ============================================================================
 // Metadata
@@ -60,20 +61,15 @@ export const metadata = {
 // Handler
 // ============================================================================
 
-interface ToolContext {
-  accessToken: string;
-  userId?: string;
-}
-
-export default async function handler(
-  input: EditNoteUiInput,
-  context: ToolContext
-) {
+export default async function handler(input: EditNoteUiInput) {
   const { uid, proposed_content, summary, ui_format } = input;
-  const { accessToken, userId } = context;
+
+  // Get authenticated context for API calls
+  const auth = await getBackendAuth();
+  const userId = await getCurrentUserId();
 
   // 1. Fetch the current note
-  const note = await api.getNote({ uid }, accessToken);
+  const note = await api.getNote({ uid }, auth);
   const originalContent = (note.payload.content ?? "").toString();
 
   // 2. Compute line-level diff

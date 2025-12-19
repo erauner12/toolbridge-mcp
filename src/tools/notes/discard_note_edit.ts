@@ -16,11 +16,11 @@ import { getSession, discardSession } from "../../lib/noteEdits/sessions.js";
 // Schema
 // ============================================================================
 
-export const schema = z.object({
+export const schema = {
   edit_id: z.string().describe("The edit session ID to discard"),
-});
+};
 
-export type DiscardNoteEditInput = z.infer<typeof schema>;
+export type DiscardNoteEditInput = z.infer<z.ZodObject<typeof schema>>;
 
 // ============================================================================
 // Metadata
@@ -41,14 +41,7 @@ export const metadata = {
 // Handler
 // ============================================================================
 
-interface ToolContext {
-  accessToken: string;
-}
-
-export default async function handler(
-  input: DiscardNoteEditInput,
-  _context: ToolContext
-) {
+export default async function handler(input: DiscardNoteEditInput) {
   const { edit_id } = input;
 
   // 1. Get session info before discarding
