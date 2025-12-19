@@ -58,7 +58,7 @@ function buildTextContent(text: string): UIContentBlock {
 /**
  * Build an HTML embedded resource.
  */
-function buildHtmlResource(uri: string, html: string): UIContentBlock {
+function buildHtmlResource(uri: `ui://${string}`, html: string): UIContentBlock {
   const resource = createUIResource({
     uri,
     encoding: "text",
@@ -88,7 +88,7 @@ function buildHtmlResource(uri: string, html: string): UIContentBlock {
  * Returns an array of content blocks suitable for MCP tool responses.
  */
 export function buildUiWithTextAndHtml(args: {
-  uri: string;
+  uri: `ui://${string}`;
   html: string;
   textSummary: string;
   htmlMimeType?: "text/html" | "text/html+skybridge";
@@ -133,7 +133,7 @@ export function buildUiWithTextAndHtml(args: {
  * Mirrors Python build_ui_with_text_and_dom function.
  */
 export function buildUiWithTextAndDom(args: {
-  uri: string;
+  uri: `ui://${string}`;
   html: string | null;
   remoteDom: Record<string, unknown> | null;
   textSummary: string;
@@ -202,8 +202,8 @@ export function buildUiWithTextAndDom(args: {
  *
  * Returns both the content array and structured content for the tool response.
  */
-export function buildUiWithStructuredContent<T extends Record<string, unknown>>(args: {
-  uri: string;
+export function buildUiWithStructuredContent<T>(args: {
+  uri: `ui://${string}`;
   html: string | null;
   remoteDom: Record<string, unknown> | null;
   textSummary: string;

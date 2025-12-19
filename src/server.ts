@@ -40,7 +40,8 @@ interface ToolDefinition {
   name: string;
   description: string;
   schema: z.ZodSchema;
-  handler: (input: unknown, context: { accessToken: string; userId?: string }) => Promise<unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handler: (input: any, context: { accessToken: string; userId?: string }) => Promise<unknown>;
   _meta?: Record<string, unknown>;
 }
 
