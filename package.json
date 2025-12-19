@@ -8,14 +8,15 @@
     "toolbridge-xmcp": "dist/src/server.js"
   },
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "xmcp dev",
     "dev:http": "tsx watch server/express.ts",
-    "dev:all": "tsx watch src/server.ts & tsx watch server/express.ts",
-    "build": "tsc",
+    "dev:all": "xmcp dev & tsx watch server/express.ts",
+    "build": "xmcp build",
+    "build:tsc": "tsc",
     "start": "node dist/src/server.js",
     "start:http": "node dist/server/express.js",
     "typecheck": "tsc --noEmit",
-    "mcp": "tsx src/server.ts"
+    "mcp": "xmcp dev"
   },
   "dependencies": {
     "xmcp": "^0.5.4",
