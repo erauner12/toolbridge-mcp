@@ -8,8 +8,9 @@ import { type XmcpConfig } from "xmcp";
  * server's /callback endpoint (e.g., https://toolbridge-xmcp.vercel.app/callback).
  */
 // Fallback for build time when env vars aren't available
-const authkitDomain = process.env.TOOLBRIDGE_AUTHKIT_DOMAIN || "https://authkit.example.com";
-const publicBaseUrl = process.env.TOOLBRIDGE_PUBLIC_BASE_URL || "http://localhost:8080";
+// Trim to handle any trailing newlines from environment variable configuration
+const authkitDomain = (process.env.TOOLBRIDGE_AUTHKIT_DOMAIN || "https://authkit.example.com").trim();
+const publicBaseUrl = (process.env.TOOLBRIDGE_PUBLIC_BASE_URL || "http://localhost:8080").trim();
 
 const config: XmcpConfig = {
   // Paths configuration
