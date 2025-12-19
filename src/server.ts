@@ -150,7 +150,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 // Call tool handler
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
+  const { name, arguments: args, _meta } = request.params;
 
   const tool = tools.find((t) => t.name === name);
   if (!tool) {
@@ -169,10 +169,39 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     // Parse and validate input
     const input = tool.schema.parse(args);
 
-    // Extract access token from request meta (this is simplified - actual implementation
-    // depends on how the transport layer passes authentication)
-    // In production, this would be extracted from the request headers or context
-    const accessToken = process.env.TOOLBRIDGE_ACCESS_TOKEN || "";
+    // Extract access token from request metadata or environment
+    // Priority: 1) _meta.authorization header, 2) _meta.accessToken, 3) env fallback
+    let accessToken: string | null = null;
+
+    if (_meta) {
+      // Check for Authorization header in metadata (standard OAuth2 bearer format)
+      const authHeader = (_meta as Record<string, unknown>).authorization as string | undefined;
+      if (authHeader) {
+        accessToken = extractBearerToken(authHeader);
+      }
+
+      // Check for direct accessToken in metadata
+      if (!accessToken) {
+        accessToken = (_meta as Record<string, unknown>).accessToken as string | null;
+      }
+    }
+
+    // Fall back to environment variable for local development/testing
+    if (!accessToken) {
+      accessToken = process.env.TOOLBRIDGE_ACCESS_TOKEN || null;
+    }
+
+    if (!accessToken) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: "Authentication required: No access token provided in request metadata or environment",
+          },
+        ],
+        isError: true,
+      };
+    }
 
     // Call the tool handler
     const result = await tool.handler(input, { accessToken });
