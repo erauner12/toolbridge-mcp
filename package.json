@@ -1,0 +1,44 @@
+{
+  "name": "toolbridge-xmcp",
+  "version": "1.0.0",
+  "description": "ToolBridge MCP server with UI tools - TypeScript xmcp implementation",
+  "type": "module",
+  "main": "dist/src/server.js",
+  "bin": {
+    "toolbridge-xmcp": "dist/src/server.js"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "dev:http": "tsx watch server/express.ts",
+    "dev:all": "tsx watch src/server.ts & tsx watch server/express.ts",
+    "build": "tsc",
+    "start": "node dist/src/server.js",
+    "start:http": "node dist/server/express.js",
+    "typecheck": "tsc --noEmit",
+    "mcp": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "xmcp": "^0.5.4",
+    "@mcp-ui/server": "^5.16.3",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "zod": "^3.23.0",
+    "diff": "^7.0.0",
+    "uuid": "^10.0.0",
+    "escape-html": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/diff": "^6.0.0",
+    "@types/uuid": "^10.0.0",
+    "@types/escape-html": "^1.0.4",
+    "typescript": "^5.6.0",
+    "tsx": "^4.19.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
