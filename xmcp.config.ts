@@ -54,6 +54,16 @@ const config: XmcpConfig = {
       ".mjs": [".mts", ".mjs"],
     };
 
+    // Output ESM format to match package.json "type": "module"
+    config.output = config.output || {};
+    config.output.module = true;
+    config.output.chunkFormat = "module";
+    config.output.library = { type: "module" };
+
+    // Enable experiments for ESM output
+    config.experiments = config.experiments || {};
+    config.experiments.outputModule = true;
+
     return config;
   },
 };
