@@ -1,43 +1,51 @@
-import { defineConfig } from "xmcp";
+import { type XmcpConfig } from "xmcp";
 
 /**
  * ToolBridge XMCP server configuration with WorkOS AuthKit OAuth.
  *
  * OAuth endpoints are derived from TOOLBRIDGE_AUTHKIT_DOMAIN environment variable.
  * Redirect URLs must be configured in the WorkOS dashboard to point to your
- * server's /callback endpoint (e.g., https://api.toolbridge.io/callback).
+ * server's /callback endpoint (e.g., https://toolbridge-xmcp.vercel.app/callback).
  */
-export default defineConfig({
-  name: "toolbridge",
-  version: "1.0.0",
-  description: "ToolBridge MCP server with Notes and Tasks UI tools",
+// Fallback for build time when env vars aren't available
+const authkitDomain = process.env.TOOLBRIDGE_AUTHKIT_DOMAIN || "https://authkit.example.com";
+const publicBaseUrl = process.env.TOOLBRIDGE_PUBLIC_BASE_URL || "http://localhost:8080";
 
-  // File-based routing directories
-  tools: "src/tools",
-  prompts: "src/prompts",
-  resources: "src/resources",
-
-  // Build output
-  outDir: ".xmcp",
+const config: XmcpConfig = {
+  // Paths configuration
+  paths: {
+    tools: "src/tools",
+    prompts: false,
+    resources: false,
+  },
 
   // WorkOS AuthKit OAuth configuration
   experimental: {
     oauth: {
       // Base URL for OAuth callbacks - must match WorkOS dashboard redirect URL
-      baseUrl: process.env.TOOLBRIDGE_PUBLIC_BASE_URL!,
+      baseUrl: publicBaseUrl,
       endpoints: {
-        authorizationUrl: `${process.env.TOOLBRIDGE_AUTHKIT_DOMAIN}/oauth2/authorize`,
-        tokenUrl: `${process.env.TOOLBRIDGE_AUTHKIT_DOMAIN}/oauth2/token`,
-        registerUrl: `${process.env.TOOLBRIDGE_AUTHKIT_DOMAIN}/oauth2/register`,
-        userInfoUrl: `${process.env.TOOLBRIDGE_AUTHKIT_DOMAIN}/oauth2/userinfo`,
+        authorizationUrl: authkitDomain + "/oauth2/authorize",
+        tokenUrl: authkitDomain + "/oauth2/token",
+        registerUrl: authkitDomain + "/oauth2/register",
+        userInfoUrl: authkitDomain + "/oauth2/userinfo",
       },
-      issuerUrl: process.env.TOOLBRIDGE_AUTHKIT_DOMAIN!,
+      issuerUrl: authkitDomain,
       defaultScopes: ["openid", "profile", "email"],
     },
   },
 
-  // HTTP server configuration (required for OAuth callback)
+  // HTTP server configuration
   http: {
     port: Number(process.env.TOOLBRIDGE_PORT ?? 8080),
   },
-});
+
+  // Bundler configuration - externalize Node.js-specific packages
+  bundler: (config: any) => {
+    config.externals = config.externals || [];
+    config.externals.push("@mcp-ui/server", "fs", "path", "crypto", "node:fs", "node:path", "node:crypto");
+    return config;
+  },
+};
+
+export default config;
