@@ -16,7 +16,7 @@ import { APPS_NOTES_LIST_URI } from "../../config/env.js";
 // Schema
 // ============================================================================
 
-export const schema = z.object({
+export const schema = {
   limit: z
     .number()
     .int()
@@ -32,9 +32,9 @@ export const schema = z.object({
     .enum(["html", "remote-dom", "both"])
     .default("html")
     .describe("UI format to return"),
-});
+};
 
-export type ListNotesUiInput = z.infer<typeof schema>;
+export type ListNotesUiInput = z.infer<z.ZodObject<typeof schema>>;
 
 // ============================================================================
 // Metadata

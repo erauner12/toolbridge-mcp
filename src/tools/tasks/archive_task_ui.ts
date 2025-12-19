@@ -16,7 +16,7 @@ import { APPS_TASKS_LIST_URI } from "../../config/env.js";
 // Schema
 // ============================================================================
 
-export const schema = z.object({
+export const schema = {
   uid: z.string().describe("The unique identifier of the task to archive"),
   limit: z
     .number()
@@ -33,9 +33,9 @@ export const schema = z.object({
     .enum(["html", "remote-dom", "both"])
     .default("html")
     .describe("UI format to return"),
-});
+};
 
-export type ArchiveTaskUiInput = z.infer<typeof schema>;
+export type ArchiveTaskUiInput = z.infer<z.ZodObject<typeof schema>>;
 
 // ============================================================================
 // Metadata

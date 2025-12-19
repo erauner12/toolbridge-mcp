@@ -19,11 +19,11 @@ import { getSession, discardSession, getHunkCounts } from "../../lib/noteEdits/s
 // Schema
 // ============================================================================
 
-export const schema = z.object({
+export const schema = {
   edit_id: z.string().describe("The edit session ID to apply"),
-});
+};
 
-export type ApplyNoteEditInput = z.infer<typeof schema>;
+export type ApplyNoteEditInput = z.infer<z.ZodObject<typeof schema>>;
 
 // ============================================================================
 // Metadata

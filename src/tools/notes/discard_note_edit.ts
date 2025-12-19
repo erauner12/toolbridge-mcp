@@ -16,11 +16,11 @@ import { getSession, discardSession } from "../../lib/noteEdits/sessions.js";
 // Schema
 // ============================================================================
 
-export const schema = z.object({
+export const schema = {
   edit_id: z.string().describe("The edit session ID to discard"),
-});
+};
 
-export type DiscardNoteEditInput = z.infer<typeof schema>;
+export type DiscardNoteEditInput = z.infer<z.ZodObject<typeof schema>>;
 
 // ============================================================================
 // Metadata

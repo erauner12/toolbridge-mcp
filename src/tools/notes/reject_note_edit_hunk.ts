@@ -21,16 +21,16 @@ import { APPS_NOTE_EDIT_URI } from "../../config/env.js";
 // Schema
 // ============================================================================
 
-export const schema = z.object({
+export const schema = {
   edit_id: z.string().describe("The edit session ID"),
   hunk_id: z.string().describe("The hunk ID to reject"),
   ui_format: z
     .enum(["html", "remote-dom", "both"])
     .default("html")
     .describe("UI format to return"),
-});
+};
 
-export type RejectNoteEditHunkInput = z.infer<typeof schema>;
+export type RejectNoteEditHunkInput = z.infer<z.ZodObject<typeof schema>>;
 
 // ============================================================================
 // Metadata

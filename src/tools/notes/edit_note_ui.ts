@@ -25,7 +25,7 @@ import { APPS_NOTE_EDIT_URI } from "../../config/env.js";
 // Schema
 // ============================================================================
 
-export const schema = z.object({
+export const schema = {
   uid: z.string().describe("The unique identifier of the note to edit"),
   proposed_content: z
     .string()
@@ -38,9 +38,9 @@ export const schema = z.object({
     .enum(["html", "remote-dom", "both"])
     .default("html")
     .describe("UI format to return"),
-});
+};
 
-export type EditNoteUiInput = z.infer<typeof schema>;
+export type EditNoteUiInput = z.infer<z.ZodObject<typeof schema>>;
 
 // ============================================================================
 // Metadata
