@@ -61,6 +61,19 @@ const config: XmcpConfig = {
       "xmcp/utils": cwd + "/.xmcp/utils.js",
     };
 
+    // Prevent xmcp virtual modules from being externalized
+    // This ensures the alias is used even if externals logic runs first
+    const XMCP_VIRTUAL_MODULES = new Set(["xmcp/headers", "xmcp/utils"]);
+    const originalExternals = config.externals;
+    if (typeof originalExternals === "function") {
+      config.externals = (data: any, callback: any) => {
+        if (data?.request && XMCP_VIRTUAL_MODULES.has(data.request)) {
+          return callback(); // Not external - let alias resolve it
+        }
+        return originalExternals(data, callback);
+      };
+    }
+
     // Force CommonJS output to avoid ESM/CJS mismatch issues
     // rspack's default bundling uses require() for externals
     config.output = config.output || {};
