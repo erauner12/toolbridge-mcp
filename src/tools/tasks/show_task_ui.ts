@@ -6,6 +6,7 @@
 
 import { z } from "zod";
 import * as api from "../../lib/api/toolbridgeClient.js";
+import { getBackendAuth } from "../../lib/auth/index.js";
 import { buildUiWithStructuredContent, type UIFormat } from "../../lib/ui/mcpUi.js";
 import { renderTaskDetailHtml } from "../../lib/ui/html/tasks.js";
 import { serializeTaskDetail } from "../../lib/ui/structured/serialize.js";
@@ -48,16 +49,11 @@ export const metadata = {
 // Handler
 // ============================================================================
 
-interface ToolContext {
-  accessToken: string;
-}
-
-export default async function handler(
-  input: ShowTaskUiInput,
-  context: ToolContext
-) {
+export default async function handler(input: ShowTaskUiInput) {
   const { uid, include_deleted, ui_format } = input;
-  const { accessToken } = context;
+
+  // Get authenticated context for API calls
+  const auth = await getBackendAuth();
 
   // 1. Fetch task from API
   const task = await api.getTask(
@@ -65,7 +61,7 @@ export default async function handler(
       uid,
       includeDeleted: include_deleted,
     },
-    accessToken
+    auth
   );
 
   // 2. Build server-rendered HTML

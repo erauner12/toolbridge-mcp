@@ -6,6 +6,7 @@
 
 import { z } from "zod";
 import * as api from "../../lib/api/toolbridgeClient.js";
+import { getBackendAuth } from "../../lib/auth/index.js";
 import { buildUiWithStructuredContent, type UIFormat } from "../../lib/ui/mcpUi.js";
 import { renderNotesListHtml } from "../../lib/ui/html/notes.js";
 import { serializeNotesList } from "../../lib/ui/structured/serialize.js";
@@ -56,19 +57,14 @@ export const metadata = {
 // Handler
 // ============================================================================
 
-interface ToolContext {
-  accessToken: string;
-}
-
-export default async function handler(
-  input: DeleteNoteUiInput,
-  context: ToolContext
-) {
+export default async function handler(input: DeleteNoteUiInput) {
   const { uid, limit, include_deleted, ui_format } = input;
-  const { accessToken } = context;
+
+  // Get authenticated context for API calls
+  const auth = await getBackendAuth();
 
   // 1. Delete the note
-  await api.deleteNote(uid, accessToken);
+  await api.deleteNote(uid, auth);
 
   // 2. Fetch updated notes list
   const response = await api.listNotes(
@@ -76,7 +72,7 @@ export default async function handler(
       limit,
       includeDeleted: include_deleted,
     },
-    accessToken
+    auth
   );
 
   const notes = response.items;

@@ -41,14 +41,7 @@ export const metadata = {
 // Handler
 // ============================================================================
 
-interface ToolContext {
-  accessToken: string;
-}
-
-export default async function handler(
-  input: DiscardNoteEditInput,
-  _context: ToolContext
-) {
+export default async function handler(input: DiscardNoteEditInput) {
   const { edit_id } = input;
 
   // 1. Get session info before discarding

@@ -7,6 +7,7 @@
 
 import { z } from "zod";
 import * as api from "../../lib/api/toolbridgeClient.js";
+import { getBackendAuth } from "../../lib/auth/index.js";
 import { buildUiWithTextAndHtml } from "../../lib/ui/mcpUi.js";
 import {
   renderNoteEditSuccessHtml,
@@ -43,16 +44,8 @@ export const metadata = {
 // Handler
 // ============================================================================
 
-interface ToolContext {
-  accessToken: string;
-}
-
-export default async function handler(
-  input: ApplyNoteEditInput,
-  context: ToolContext
-) {
+export default async function handler(input: ApplyNoteEditInput) {
   const { edit_id } = input;
-  const { accessToken } = context;
 
   // 1. Get the session
   const session = getSession(edit_id);
@@ -92,7 +85,8 @@ export default async function handler(
     });
   }
 
-  // 4. Attempt to update the note with optimistic concurrency
+  // 4. Get authenticated context and attempt to update the note with optimistic concurrency
+  const auth = await getBackendAuth();
   try {
     const updatedNote = await api.updateNote(
       {
@@ -101,7 +95,7 @@ export default async function handler(
         content: session.currentContent,
         ifMatch: session.baseVersion,
       },
-      accessToken
+      auth
     );
 
     // 5. Clean up session

@@ -6,6 +6,7 @@
 
 import { z } from "zod";
 import * as api from "../../lib/api/toolbridgeClient.js";
+import { getBackendAuth } from "../../lib/auth/index.js";
 import { buildUiWithStructuredContent, type UIFormat } from "../../lib/ui/mcpUi.js";
 import { renderNoteEditDiffHtml, renderNoteEditErrorHtml } from "../../lib/ui/html/noteEdits.js";
 import { buildUiWithTextAndHtml } from "../../lib/ui/mcpUi.js";
@@ -52,16 +53,8 @@ export const metadata = {
 // Handler
 // ============================================================================
 
-interface ToolContext {
-  accessToken: string;
-}
-
-export default async function handler(
-  input: ReviseNoteEditHunkInput,
-  context: ToolContext
-) {
+export default async function handler(input: ReviseNoteEditHunkInput) {
   const { edit_id, hunk_id, revised_text, ui_format } = input;
-  const { accessToken } = context;
 
   // 1. Update hunk status with revised text
   const session = setHunkStatus(edit_id, hunk_id, "revised", revised_text);
@@ -74,8 +67,9 @@ export default async function handler(
     });
   }
 
-  // 2. Fetch note for display
-  const note = await api.getNote({ uid: session.noteUid }, accessToken);
+  // 2. Get authenticated context and fetch note for display
+  const auth = await getBackendAuth();
+  const note = await api.getNote({ uid: session.noteUid }, auth);
 
   // 3. Build updated diff preview HTML
   const html = renderNoteEditDiffHtml(

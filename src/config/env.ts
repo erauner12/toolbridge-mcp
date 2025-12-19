@@ -17,11 +17,11 @@ const envSchema = z.object({
     .url()
     .describe("Go backend API base URL"),
 
-  // Optional auth settings
+  // Auth settings - AuthKit OAuth
   authkitDomain: z
     .string()
     .optional()
-    .describe("WorkOS AuthKit domain for OAuth"),
+    .describe("WorkOS AuthKit domain for OAuth (e.g., https://your-app.authkit.app)"),
   backendApiAudience: z
     .string()
     .optional()
@@ -29,11 +29,39 @@ const envSchema = z.object({
   tenantId: z
     .string()
     .optional()
-    .describe("Default tenant ID (optional)"),
+    .describe("Default tenant ID (static tenant mode only)"),
   jwtSigningKey: z
     .string()
     .optional()
-    .describe("JWT signing key for token exchange"),
+    .describe("JWT signing key for local token issuance (RS256 PEM or HS256 secret)"),
+
+  // Auth mode configuration
+  authMode: z
+    .enum(["exchange", "passthrough"])
+    .default("exchange")
+    .describe(
+      "Token auth mode: 'exchange' uses backend /auth/token-exchange endpoint (recommended), " +
+      "'passthrough' calls Go API with AuthKit token directly"
+    ),
+  tenantMode: z
+    .enum(["backend", "claim", "static"])
+    .default("backend")
+    .describe(
+      "Tenant resolution mode: 'backend' calls /v1/auth/tenant (recommended), " +
+      "'claim' reads tenant_id from token claim, 'static' uses env.tenantId"
+    ),
+
+  // Derived auth endpoints (can be overridden)
+  backendTokenExchangeUrl: z
+    .string()
+    .url()
+    .optional()
+    .describe("Backend token exchange endpoint (default: {goApiBaseUrl}/auth/token-exchange)"),
+  tenantResolutionUrl: z
+    .string()
+    .url()
+    .optional()
+    .describe("Tenant resolution endpoint (default: {goApiBaseUrl}/v1/auth/tenant)"),
 
   // UI settings
   uiHtmlMimeType: z
@@ -62,13 +90,26 @@ const envSchema = z.object({
 type EnvConfig = z.infer<typeof envSchema>;
 
 function loadEnv(): EnvConfig {
+  const goApiBaseUrl = process.env.TOOLBRIDGE_GO_API_BASE_URL;
+
   const raw = {
     publicBaseUrl: process.env.TOOLBRIDGE_PUBLIC_BASE_URL,
-    goApiBaseUrl: process.env.TOOLBRIDGE_GO_API_BASE_URL,
+    goApiBaseUrl,
     authkitDomain: process.env.TOOLBRIDGE_AUTHKIT_DOMAIN,
     backendApiAudience: process.env.TOOLBRIDGE_BACKEND_API_AUDIENCE,
     tenantId: process.env.TOOLBRIDGE_TENANT_ID,
     jwtSigningKey: process.env.TOOLBRIDGE_JWT_SIGNING_KEY,
+    // Auth mode configuration
+    authMode: process.env.TOOLBRIDGE_AUTH_MODE,
+    tenantMode: process.env.TOOLBRIDGE_TENANT_MODE,
+    // Auth endpoints (defaults derived from goApiBaseUrl)
+    backendTokenExchangeUrl:
+      process.env.TOOLBRIDGE_BACKEND_TOKEN_EXCHANGE_URL ||
+      (goApiBaseUrl ? `${goApiBaseUrl}/auth/token-exchange` : undefined),
+    tenantResolutionUrl:
+      process.env.TOOLBRIDGE_TENANT_RESOLUTION_URL ||
+      (goApiBaseUrl ? `${goApiBaseUrl}/v1/auth/tenant` : undefined),
+    // UI settings
     uiHtmlMimeType: process.env.TOOLBRIDGE_UI_HTML_MIME_TYPE,
     appsSdkMimeType: process.env.TOOLBRIDGE_APPS_SDK_MIME_TYPE,
     appsOutputTemplateMode: process.env.TOOLBRIDGE_APPS_OUTPUT_TEMPLATE_MODE,
