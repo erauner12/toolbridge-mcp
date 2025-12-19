@@ -42,9 +42,9 @@ const config: XmcpConfig = {
 
   // Bundler configuration
   bundler: (config: any) => {
-    // Externalize Node.js-specific packages
+    // Externalize Node.js built-in modules only (not @mcp-ui/server which should be bundled)
     config.externals = config.externals || [];
-    config.externals.push("@mcp-ui/server", "fs", "path", "crypto", "node:fs", "node:path", "node:crypto");
+    config.externals.push("fs", "path", "crypto", "node:fs", "node:path", "node:crypto");
 
     // Configure resolve extensions to handle .js -> .ts mapping
     config.resolve = config.resolve || {};
